@@ -4,7 +4,7 @@ const path = require('path');
 const app = express();
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'frontend')));
 app.use('/static', express.static(path.join(__dirname, '..', 'ressources', 'static')));
 
 const todos = [];
