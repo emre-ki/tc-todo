@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Todo-Liste</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <main>
+    <h1>Todo-Liste</h1>
+
+    <form id="form">
+      <input id="text" type="text" placeholder="Neue Aufgabe" aria-label="Neue Aufgabe" autocomplete="off" required>
+      <button type="submit">Hinzufügen</button>
+    </form>
+
+    <p id="status" role="status"></p>
+    <ul id="list"></ul>
+  </main>
+
+  <script>
+    const form = document.getElementById('form');
+    const input = document.getElementById('text');
+    const list = document.getElementById('list');
+    const status = document.getElementById('status');
+
+    function setStatus(message, isError) {
+      status.textContent = message;
+      status.className = isError ? 'error' : '';
+    }
+
+    async function load() {
+      try {
+        const res = await fetch('/todos');
+        if (!res.ok) throw new Error();
+        const todos = await res.json();
+        list.replaceChildren(...todos.map(t => {
+          const li = document.createElement('li');
+          li.textContent = t.text;
+          return li;
+        }));
+        setStatus(todos.length ? '' : 'Noch keine Aufgaben. Trage oben die erste ein.', false);
+      } catch {
+        setStatus('Die Liste konnte nicht geladen werden.', true);
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      try {
+        const res = await fetch('/todos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        if (!res.ok) throw new Error();
+        input.value = '';
+        load();
+      } catch {
+        setStatus('Die Aufgabe konnte nicht gespeichert werden.', true);
+      }
+    });
+
+    load();
+  </script>
+</body>
+</html>
