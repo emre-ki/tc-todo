@@ -1,0 +1,13 @@
+# Konfiguration für Google App Engine (PaaS)
+# Deploy aus dem Repo-Hauptordner mit: gcloud app deploy
+
+# Welche Laufzeitumgebung Google bereitstellen soll
+runtime: nodejs22
+
+# Kleinste (und günstigste) Instanzgröße
+instance_class: F1
+
+# Kostenbremse: höchstens 1 Instanz, bei 0 Besuchern auf 0 runterfahren
+automatic_scaling:
+  min_instances: 0
+  max_instances: 1

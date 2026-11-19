@@ -1,0 +1,12 @@
+{
+  "name": "tc-todo",
+  "private": true,
+  "description": "Startpunkt für App Engine: installiert und startet die App aus dem Ordner app/",
+  "scripts": {
+    "gcp-build": "npm --prefix app ci",
+    "start": "node app/server.js"
+  },
+  "engines": {
+    "node": "22.x"
+  }
+}

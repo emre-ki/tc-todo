@@ -1,0 +1,7 @@
+# Dateien, die bei "gcloud app deploy" NICHT zu Google hochgeladen werden
+.gcloudignore
+.git
+.gitignore
+README.md
+node_modules/
+app/node_modules/
