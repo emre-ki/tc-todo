@@ -1,3 +1,5 @@
+## IaaS mit Compute Engine
+
 IaaS Instanz erstellen -> Benötigte Rollen: roles/compute.instanceAdmin.v1.
 Region per Region Calc "ausgerechnet" und auf europe-west4-a (Niederlande) gesetzt. Könnte auch Frankfurt sein da näher, aber fals CO2 wichtig ist eher Niederlande.
 Maschinentyp E2-micro aufgrund niedrieger Kosten sowie dem Grund, dass unsere App ganz klein ist und nicht viel Ressourcen benötigt 
@@ -24,3 +26,58 @@ Firewallregel todo-app erstellt für port 8080 und tag gesetzt und diesen in Net
 
 
 *Frage unterschied das Cloud Projekt auf eine bestimmte Zonse zu setzen und die VM z.B. seperat auf eine
+
+## PaaS mit App Engine
+
+Link: https://einf-cloud-computing.ey.r.appspot.com
+
+Region ist europe-west3 (Frankfurt). Niederlande wie bei der VM ging nicht, weil es App Engine dort gar nicht gibt. Frankfurt ist von uns aus am nächsten, deshalb haben wir das genommen. Die Region kann man danach nicht mehr ändern, pro Projekt gibt es nur eine App Engine App.
+
+Beim Anlegen gab es erst einen Fehler (IAM_PERMISSION_DENIED), obwohl ich (sebi) Bearbeiter und App Engine Admin war. Die App anlegen darf nur der Projekt Inhaber, deshalb hat Emre das gemacht:
+gcloud app create --region=europe-west3 --project=einf-cloud-computing
+Danach konnte ich ganz normal deployen.
+
+Statt wie bei IaaS eine ganze VM zu mieten und darauf alles selbst einzurichten, mussten wir hier nur zwei Dateien anlegen und einen Befehl ausführen. In der app.yaml steht, dass wir Node.js 22 brauchen, die kleinste Instanz (F1) und höchstens eine Instanz, damit keine Kosten ausufern. Die package.json im Hauptordner sagt Google, wie die App gebaut und gestartet wird (gcp-build installiert die Abhängigkeiten in app/, start startet app/server.js). Dazu noch eine .gcloudignore, damit node_modules und .git nicht mit hochgeladen werden.
+Die Dateien liegen im Hauptordner und nicht in app/, weil gcloud nur den Ordner hochlädt in dem die app.yaml liegt. Die CSS liegt aber in ressources/ und hätte sonst gefehlt. So mussten wir am Code von der VM Version nichts ändern.
+
+Deployen im Hauptordner mit:
+gcloud app deploy
+Den Rest hat Google komplett automatisch gemacht, also Node installieren, npm install, App starten und von außen erreichbar machen. Kein SSH, kein apt install, keine Firewallregel und kein npm start per Hand. Hat ein paar Minuten gedauert und dann lief die Seite direkt mit HTTPS.
+
+Was auch angenehm ist: Man muss hier nichts stoppen wie bei der VM. Wenn keiner die Seite aufruft, fährt App Engine die Instanz von selbst auf 0 runter und es kostet nichts. Man muss also einfach gar nichts tun. Dafür hat man weniger Kontrolle, man kann eigentlich nur über die app.yaml etwas einstellen und kommt nicht an das System selbst ran.
+
+Wir haben einmal lokal über das Google Cloud SDK auf dem Mac und einmal über die Cloud Shell im Browser deployt. Der Befehl war beide Male gcloud app deploy und das Ergebnis ist quasi genau gleich, die Seite sieht gleich aus und läuft unter derselben URL. Ehrlich gesagt wissen wir nicht genau, weshalb wir das 2x machen mussten. Unterschied war nur, dass wir in der Cloud Shell das Google Cloud SDK nicht installieren und uns nicht einloggen mussten, dafür aber erst das Repo von GitHub klonen. Mit gcloud app versions list sieht man danach beide Versionen, die neue bekommt automatisch den ganzen Traffic und die alte bleibt noch da.
+
+
+## FaaS mit Cloud Functions
+
+Zwei Funktionen im Ordner functions/, beide in europe-west3 (Frankfurt).
+
+todos (Node.js 22): https://europe-west3-einf-cloud-computing.cloudfunctions.net/todos
+Unsere server.js als einzelne Funktion. GET gibt alle Todos zurück, POST legt eins an. Express und app.listen fallen weg, das macht Google.
+
+stats (Python 3.13): https://europe-west3-einf-cloud-computing.cloudfunctions.net/stats
+Bekommt eine Todo Liste und gibt zurück wie viele erledigt und offen sind und wie viel Prozent geschafft ist. Speichert nichts, rechnet nur.
+
+Pro Funktion braucht man nur den Code, eine package.json bzw. requirements.txt mit den Paketen und eine .gcloudignore, damit node_modules bzw. das venv nicht mit hochgeladen werden.
+
+
+### Deployen
+
+Jeweils im Ordner der Funktion:
+gcloud functions deploy todos --gen2 --runtime=nodejs22 --region=europe-west3 --source=. --entry-point=todos --trigger-http --allow-unauthenticated --max-instances=1
+gcloud functions deploy stats --gen2 --runtime=python313 --region=europe-west3 --source=. --entry-point=stats --trigger-http --allow-unauthenticated --max-instances=1
+Beim ersten Mal fragt gcloud ob es ein paar APIs aktivieren soll, einfach mit y bestätigen. --allow-unauthenticated heißt jeder darf die URL ohne Login aufrufen, --max-instances=1 ist wieder die Kostenbremse.
+
+### Testen mit curl
+
+curl https://europe-west3-einf-cloud-computing.cloudfunctions.net/todos
+curl -X POST -H "Content-Type: application/json" -d '{"text":"Hausaufgaben"}' https://europe-west3-einf-cloud-computing.cloudfunctions.net/todos
+curl -X POST -H "Content-Type: application/json" -d '[{"text":"Einkaufen","done":true},{"text":"Lernen","done":false},{"text":"Sport","done":true}]' https://europe-west3-einf-cloud-computing.cloudfunctions.net/stats
+Die letzte Antwort war {"erledigt":2,"gesamt":3,"offen":1,"prozent_erledigt":67}.
+
+### Was wir gemerkt haben
+
+Die Todos sind nach einer Weile einfach wieder weg. Wir haben morgens "Hausaufgaben" angelegt und etwas später kam bei GET wieder eine leere Liste. Die Liste liegt nur im Arbeitsspeicher und wenn keiner die Funktion aufruft räumt Google sie weg. Bei der VM und bei App Engine lief der Server länger am Stück, deshalb ist uns das da nicht passiert. Für eine echte Todo App bräuchte man also eine Datenbank, eine Funktion allein kann sich nichts merken (zustandslos).
+
+Ehrlich gesagt haben wir erst deployt und dann committet. Das geht, weil gcloud einfach den Ordner so hochlädt wie er auf dem Rechner liegt. Eigentlich sollte man aber erst committen, damit man weiß welcher Stand in der Cloud läuft.
