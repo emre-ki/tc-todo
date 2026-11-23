@@ -81,3 +81,9 @@ Die letzte Antwort war {"erledigt":2,"gesamt":3,"offen":1,"prozent_erledigt":67}
 Die Todos sind nach einer Weile einfach wieder weg. Wir haben morgens "Hausaufgaben" angelegt und etwas später kam bei GET wieder eine leere Liste. Die Liste liegt nur im Arbeitsspeicher und wenn keiner die Funktion aufruft räumt Google sie weg. Bei der VM und bei App Engine lief der Server länger am Stück, deshalb ist uns das da nicht passiert. Für eine echte Todo App bräuchte man also eine Datenbank, eine Funktion allein kann sich nichts merken (zustandslos).
 
 Ehrlich gesagt haben wir erst deployt und dann committet. Das geht, weil gcloud einfach den Ordner so hochlädt wie er auf dem Rechner liegt. Eigentlich sollte man aber erst committen, damit man weiß welcher Stand in der Cloud läuft.
+
+### Docker
+Alle relevanten Ordner mit Code oder CSS in /app verschoben. Darin Dockerfile und Dockerignore erstellt. Dockerignore damit beim Build nichts überschrieben / neuinstalliert wird.
+Dockerfile simpel aufgebaut, auch vom Aufbau im Internet zu finden. Erstes Image gebaut mit docker build -t todo-app und nochmal mit docker images gecheckt (im Ordner /app).
+Starten über docker run -p 8080:8080 todo-app. Dann sieht man auch in Docker Desktop das es läuft und man kann die Seite aufrufen. ÜBer Desktop App oder Terminal dann weider beenden.
+### FEHLT / TODO: Artifact Registry, deployen auf GKE und Cloud Run.
