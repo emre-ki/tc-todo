@@ -85,5 +85,8 @@ Ehrlich gesagt haben wir erst deployt und dann committet. Das geht, weil gcloud 
 ### Docker
 Alle relevanten Ordner mit Code oder CSS in /app verschoben. Darin Dockerfile und Dockerignore erstellt. Dockerignore damit beim Build nichts überschrieben / neuinstalliert wird.
 Dockerfile simpel aufgebaut, auch vom Aufbau im Internet zu finden. Erstes Image gebaut mit docker build -t todo-app und nochmal mit docker images gecheckt (im Ordner /app).
-Starten über docker run -p 8080:8080 todo-app. Dann sieht man auch in Docker Desktop das es läuft und man kann die Seite aufrufen. ÜBer Desktop App oder Terminal dann weider beenden.
+Starten über docker run -p 8080:8080 todo-app. Dann sieht man auch in Docker Desktop das es läuft und man kann die Seite aufrufen. ÜBer Desktop App oder Terminal dann wieder beenden.
+
+Docker Images sind Snapshots vom code, weswegen bei änderungen das Dockerimage neu gebaut werden muss. Immer Version erhöhen.
+
 ### FEHLT / TODO: Artifact Registry, deployen auf GKE und Cloud Run.
