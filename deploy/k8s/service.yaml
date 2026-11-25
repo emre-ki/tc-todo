@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-app
+spec:
+  type: LoadBalancer
+  selector:
+    app: todo-app
+  ports:
+    - port: 80
+      targetPort: 8080
+
+# Jede Anfrage kommt auf Port 80 an und wird an Port 8080 im Pod weitergereicht

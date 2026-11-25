@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-app
+  template:
+    metadata:
+      labels:
+        app: todo-app
+    spec:
+      containers:
+        - name: todo-app
+          image: europe-west3-docker.pkg.dev/einf-cloud-computing/todo-repo/todo-app:v2
+          ports:
+            - containerPort: 8080
+
+# replicas 1 kann manuell erhöht werden oder per "HPA" autoscaler -> readme

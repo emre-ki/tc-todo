@@ -89,4 +89,32 @@ Starten über docker run -p 8080:8080 todo-app. Dann sieht man auch in Docker De
 
 Docker Images sind Snapshots vom code, weswegen bei änderungen das Dockerimage neu gebaut werden muss. Immer Version erhöhen.
 
-### FEHLT / TODO: Artifact Registry, deployen auf GKE und Cloud Run.
+Deployed wurde das Image per:
+gcloud run deploy todo-container --image europe-west3-docker.pkg.dev/einf-cloud-computing/todo-repo/todo-app:v2 --region europe-west3
+
+https://todo-container-860957730183.europe-west3.run.app
+
+1 Image wird dann quasi für GKE und Cloud Run verwendet
+
+### GKE
+Plugins installieren: gcloud components install kubectl gke-gcloud-auth-plugin
+
+Erstellung von Cluster mit gcloud container clusters create-auto todo-cluster --location=europe-west3, create-auto weil Google dann selbst die Nodes verwaltet. Weniger Kontrolle aber weniger arbeit, in dem kleinen Projekt eigentlich beides machbar. Danach mit container mit get-creditentials verbunden.
+replicas ist auf 1 gesetzt. Das ist ein Pod, was für unsere größe ausreicht. Durch einen Autoscaler (HPA) kann man je nacht auslastung der Ressourcen automatisch die Pods vergrößern.
+Dann müsste man auch grenzen Setzen (min, max), damit es nicht ins unendliche geht und hohe kosten verursacht. Unsere App ist bisher nicht Zustandslos weswegen es keinen Sinn macht das einzubauen.
+
+Image: `europe-west3-docker.pkg.dev/einf-cloud-computing/todo-repo/todo-app:v2`
+
+Cluster erstellen und deployen:
+gcloud container clusters create-auto todo-cluster --location=europe-west3
+gcloud container clusters get-credentials todo-cluster --location europe-west3
+kubectl apply -f deploy/k8s/   # Das Image hierzu ist im yaml
+kubectl get service todo-app --watch
+Wenn läuft kriegt man eine IP zum aufrufen
+
+Wieder löschen wenn nicht genutzt da kosten laufen:
+kubectl delete -f deploy/k8s/
+gcloud container clusters delete todo-cluster --location europe-west3
+
+Prüfen:
+gcloud container clusters list
