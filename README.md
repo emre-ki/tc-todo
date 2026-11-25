@@ -84,17 +84,25 @@ Ehrlich gesagt haben wir erst deployt und dann committet. Das geht, weil gcloud 
 
 ### Docker
 Alle relevanten Ordner mit Code oder CSS in /app verschoben. Darin Dockerfile und Dockerignore erstellt. Dockerignore damit beim Build nichts überschrieben / neuinstalliert wird.
-Dockerfile simpel aufgebaut, auch vom Aufbau im Internet zu finden. Erstes Image gebaut mit docker build -t todo-app und nochmal mit docker images gecheckt (im Ordner /app).
-Starten über docker run -p 8080:8080 todo-app. Dann sieht man auch in Docker Desktop das es läuft und man kann die Seite aufrufen. ÜBer Desktop App oder Terminal dann wieder beenden.
+Dockerfile simpel aufgebaut, auch vom Aufbau im Internet zu finden. Erstes Image gebaut mit "docker build -t todo-app" und nochmal mit "docker images" gecheckt (im Ordner /app).
+Starten über "docker run -p 8080:8080 todo-app". Dann sieht man auch in Docker Desktop das es läuft und man kann die Seite aufrufen. Über Desktop App oder Terminal dann wieder beenden.
+Am besten läuft Docker Desktop App einfach im Hintergrund.
 
 Docker Images sind Snapshots vom code, weswegen bei änderungen das Dockerimage neu gebaut werden muss. Immer Version erhöhen.
 
-Deployed wurde das Image per:
-gcloud run deploy todo-container --image europe-west3-docker.pkg.dev/einf-cloud-computing/todo-repo/todo-app:v2 --region europe-west3
-
+Cloud Run:
 https://todo-container-860957730183.europe-west3.run.app
 
-1 Image wird dann quasi für GKE und Cloud Run verwendet
+1 Image wird dann quasi für GKE und Cloud Run verwendet 
+
+### Cloud Run
+
+Image bauen und deployen für Cloud Run:
+
+docker build -t todo-app .
+docker tag todo-app europe-west3-docker.pkg.dev/einf-cloud-computing/todo-repo/todo-app:v3  <--- Version immer erhöhen bei neuem Image
+docker push europe-west3-docker.pkg.dev/einf-cloud-computing/todo-repo/todo-app:v3          <--- Version immer erhöhen bei neuen Image
+gcloud run deploy todo-container --image europe-west3-docker.pkg.dev/einf-cloud-computing/todo-repo/todo-app:v3 --region europe-west3
 
 ### GKE
 Plugins installieren: gcloud components install kubectl gke-gcloud-auth-plugin
